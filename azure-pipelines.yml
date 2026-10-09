@@ -18,11 +18,23 @@ steps:
       docker compose -p votingapp build vote result worker
     displayName: "Build application images"
 
+
   - script: |
-      echo "Build ID: $(Build.BuildId)"
-      echo "Source commit: $(Build.SourceVersion)"
-      echo "Branch: $(Build.SourceBranch)"
-    displayName: "Record build metadata"
+      set -eu
+
+      mkdir -p "$(Build.ArtifactStagingDirectory)"
+
+      {
+        echo "Build ID: $(Build.BuildId)"
+        echo "Source commit: $(Build.SourceVersion)"
+        echo "Branch: $(Build.SourceBranch)"
+        echo "Build number: $(Build.BuildNumber)"
+      } > "$(Build.ArtifactStagingDirectory)/build-metadata.txt"
+
+      echo "Build metadata file created."
+      cat "$(Build.ArtifactStagingDirectory)/build-metadata.txt"
+    displayName: "Create build metadata artifact"
+
 
   - script: |
       set -eu
@@ -116,6 +128,14 @@ steps:
 
       echo "Vote submission returned a successful HTTP response."
     displayName: "Test vote submission"
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '$(Build.ArtifactStagingDirectory)'
+      artifact: 'build-metadata'
+      publishLocation: 'pipeline'
+    displayName: "Publish build metadata artifact"
+
 
   - script: |
       docker compose -p votingapp logs --no-color
