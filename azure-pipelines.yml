@@ -15,7 +15,7 @@ steps:
     displayName: "Check Docker tools"
 
   - script: |
-      docker compose build vote result worker
+      docker compose -p votingapp build vote result worker
     displayName: "Build application images"
 
   - script: |
@@ -23,6 +23,29 @@ steps:
       echo "Source commit: $(Build.SourceVersion)"
       echo "Branch: $(Build.SourceBranch)"
     displayName: "Record build metadata"
+
+  - script: |
+      set -eu
+
+      docker image tag votingapp-vote:latest \
+        "voting-app-vote:$(Build.BuildId)"
+
+      docker image tag votingapp-result:latest \
+        "voting-app-result:$(Build.BuildId)"
+
+      docker image tag votingapp-worker:latest \
+        "voting-app-worker:$(Build.BuildId)"
+    displayName: "Tag application images"
+
+  - script: |
+      set -eu
+
+      docker image inspect "voting-app-vote:$(Build.BuildId)"
+      docker image inspect "voting-app-result:$(Build.BuildId)"
+      docker image inspect "voting-app-worker:$(Build.BuildId)"
+
+      echo "All three versioned images exist."
+    displayName: "Validate versioned images"
 
   - script: |
       docker image ls
