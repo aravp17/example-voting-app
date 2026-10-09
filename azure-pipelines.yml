@@ -1,0 +1,23 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - checkout: self
+
+  - script: |
+      docker --version
+      docker compose version
+    displayName: "Check Docker tools"
+
+  - script: |
+      docker compose build vote result worker
+    displayName: "Build application images"
+
+  - script: |
+      docker image ls
+    displayName: "List built images"
