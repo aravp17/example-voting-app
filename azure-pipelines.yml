@@ -19,5 +19,13 @@ steps:
     displayName: "Build application images"
 
   - script: |
-      docker image ls
-    displayName: "List built images"
+      docker image tag "$(docker compose images -q vote)" "voting-app-vote:$(Build.BuildId)"
+      docker image tag "$(docker compose images -q result)" "voting-app-result:$(Build.BuildId)"
+      docker image tag "$(docker compose images -q worker)" "voting-app-worker:$(Build.BuildId)"
+    displayName: "Tag application images"
+
+  - script: |
+      docker image ls voting-app-vote
+      docker image ls voting-app-result
+      docker image ls voting-app-worker
+    displayName: "Verify versioned images"
