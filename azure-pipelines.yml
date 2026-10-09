@@ -46,6 +46,44 @@ steps:
 
       echo "All three versioned images exist."
     displayName: "Validate versioned images"
+  
+  - script: |
+      set -eu
+
+      echo "Vote image:"
+      docker image inspect \
+        --format='Image ID: {{.Id}}' \
+        "voting-app-vote:$(Build.BuildId)"
+
+      echo "Result image:"
+      docker image inspect \
+        --format='Image ID: {{.Id}}' \
+        "voting-app-result:$(Build.BuildId)"
+
+      echo "Worker image:"
+      docker image inspect \
+        --format='Image ID: {{.Id}}' \
+        "voting-app-worker:$(Build.BuildId)"
+    displayName: "Inspect versioned images"
+
+  - script: |
+      set -eu
+
+      docker compose -p votingapp up -d --no-build vote result worker
+
+      echo "Container status:"
+      docker compose -p votingapp ps
+    displayName: "Start and inspect application"
+
+  - script: |
+      docker compose -p votingapp logs --no-color
+    displayName: "Capture application logs"
+    condition: always()
+
+  - script: |
+      docker compose -p votingapp down -v
+    displayName: "Clean up test environment"
+    condition: always()
 
   - script: |
       docker image ls
