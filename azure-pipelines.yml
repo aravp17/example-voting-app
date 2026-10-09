@@ -74,6 +74,34 @@ steps:
       echo "Container status:"
       docker compose -p votingapp ps
     displayName: "Start and inspect application"
+  
+  - script: |
+      set -eu
+
+      check_endpoint() {
+        url="$1"
+        name="$2"
+        attempt=1
+
+        while [ "$attempt" -le 30 ]; do
+          if curl --fail --silent \
+            --output /dev/null "$url"; then
+            echo "$name is responding successfully."
+            return 0
+          fi
+
+          echo "Waiting for $name (attempt $attempt/30)..."
+          sleep 2
+          attempt=$((attempt + 1))
+        done
+
+        echo "ERROR: $name did not respond at $url"
+        return 1
+      }
+
+      check_endpoint "http://localhost:8080/" "Vote UI"
+      check_endpoint "http://localhost:8081/" "Results UI"
+    displayName: "Smoke test web interfaces"
 
   - script: |
       docker compose -p votingapp logs --no-color
