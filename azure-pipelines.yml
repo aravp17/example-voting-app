@@ -104,6 +104,20 @@ steps:
     displayName: "Smoke test web interfaces"
 
   - script: |
+      set -eu
+
+      echo "Submitting a test vote..."
+
+      curl --fail --silent --show-error \
+        --output /dev/null \
+        --request POST \
+        --data "vote=a" \
+        http://localhost:8080/
+
+      echo "Vote submission returned a successful HTTP response."
+    displayName: "Test vote submission"
+
+  - script: |
       docker compose -p votingapp logs --no-color
     displayName: "Capture application logs"
     condition: always()
